@@ -13,8 +13,11 @@ import (
 
 func main() {
 	ensureInputExists(1)
-	result := Day1(ReadFile(dailyInputPath(1)))
-	fmt.Printf("Day 1 result: %s", result)
+	input := ReadFile(dailyInputPath(1))
+	result := Day1Part1(input)
+	fmt.Printf("Day 1 part 1 result: %d\n", result)
+	result = Day1Part2(input)
+	fmt.Printf("Day 1 part 2 result: %d", result)
 }
 
 func ensureInputExists(day int8) {
