@@ -7,7 +7,7 @@ import (
 	"unicode"
 )
 
-func Day1Part1(input string) int {
+func Day1Part1(input string) string {
 
 	var numbers []int
 
@@ -31,10 +31,10 @@ func Day1Part1(input string) int {
 		sum = sum + n
 	}
 
-	return sum
+	return strconv.Itoa(sum)
 }
 
-func Day1Part2(input string) int {
+func Day1Part2(input string) string {
 
 	tokens := map[string]int{
 		"0":     0,
@@ -91,6 +91,5 @@ func Day1Part2(input string) int {
 		sum = sum + n
 	}
 
-	// 55648 too low
-	return sum
+	return strconv.Itoa(sum)
 }

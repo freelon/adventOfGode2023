@@ -11,16 +11,23 @@ import (
 	"strings"
 )
 
-func main() {
-	ensureInputExists(1)
-	input := ReadFile(dailyInputPath(1))
-	result := Day1Part1(input)
-	fmt.Printf("Day 1 part 1 result: %d\n", result)
-	result = Day1Part2(input)
-	fmt.Printf("Day 1 part 2 result: %d", result)
+type Part = func(input string) string
+
+var days = map[int][]Part{
+	1: {Day1Part1, Day1Part2},
 }
 
-func ensureInputExists(day int8) {
+func main() {
+	day := 1
+	ensureInputExists(day)
+	input := ReadFile(dailyInputPath(day))
+	for part, f := range days[day] {
+		result := f(input)
+		fmt.Printf("Day %d part %d result: %s\n", day, part, result)
+	}
+}
+
+func ensureInputExists(day int) {
 	var myFilePath = dailyInputPath(day)
 
 	if doesFileExist(myFilePath) {
@@ -31,14 +38,14 @@ func ensureInputExists(day int8) {
 	}
 }
 
-func download(day int8) {
+func download(day int) {
 	var url = fmt.Sprintf("https://adventofcode.com/2023/day/%d/input", day)
 	var target = dailyInputPath(day)
 
 	downloadUrlToFile(url, target)
 }
 
-func dailyInputPath(day int8) string {
+func dailyInputPath(day int) string {
 	return fmt.Sprintf("./input/day%02d.txt", day)
 }
 
