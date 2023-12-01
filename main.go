@@ -14,7 +14,7 @@ import (
 func main() {
 	ensureInputExists(1)
 	result := Day1(ReadFile(dailyInputPath(1)))
-	_ = fmt.Sprintf("Day 1 result: %s", result)
+	fmt.Printf("Day 1 result: %s", result)
 }
 
 func ensureInputExists(day int8) {
