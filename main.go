@@ -1,6 +1,8 @@
 package main
 
 import (
+	"adventOfGode2023/day01"
+	"adventOfGode2023/day02"
 	"errors"
 	"fmt"
 	"io"
@@ -14,8 +16,8 @@ import (
 type Part = func(input string) string
 
 var days = map[int][]Part{
-	1: {Day1Part1, Day1Part2},
-	2: {Day2Part1, Day2Part2},
+	1: {day01.Part1, day01.Part2},
+	2: {day02.Part1, day02.Part2},
 }
 
 func main() {

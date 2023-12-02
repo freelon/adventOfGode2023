@@ -1,13 +1,16 @@
-package main
+package day01
 
-import "testing"
+import (
+	"adventOfGode2023"
+	"testing"
+)
 
 func TestDay1Part1(t *testing.T) {
 	input := `1abc2
 pqr3stu8vwx
 a1b2c3d4e5f
 treb7uchet`
-	Assert(t, 142, Day1Part1(input))
+	main.Assert(t, 142, Part1(input))
 }
 
 func TestDay1Part2(t *testing.T) {
@@ -18,5 +21,5 @@ xtwone3four
 4nineeightseven2
 zoneight234
 7pqrstsixteen`
-	Assert(t, 281, Day1Part2(input))
+	main.Assert(t, 281, Part2(input))
 }

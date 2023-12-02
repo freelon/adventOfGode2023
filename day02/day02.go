@@ -1,11 +1,11 @@
-package main
+package day02
 
 import (
 	"strconv"
 	"strings"
 )
 
-func Day2Part1(input string) string {
+func Part1(input string) string {
 	maxCubes := map[string]int{
 		"red":   12,
 		"green": 13,
@@ -39,7 +39,7 @@ func Day2Part1(input string) string {
 	return strconv.Itoa(goodGamesIdSum)
 }
 
-func Day2Part2(input string) string {
+func Part2(input string) string {
 	input = strings.TrimSpace(input)
 	powerSum := 0
 	for _, line := range strings.Split(input, "\n") {
@@ -67,5 +67,4 @@ func Day2Part2(input string) string {
 		powerSum += maxCubes["red"] * maxCubes["green"] * maxCubes["blue"]
 	}
 	return strconv.Itoa(powerSum)
-
 }

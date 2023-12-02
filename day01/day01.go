@@ -1,4 +1,4 @@
-package main
+package day01
 
 import (
 	"fmt"
@@ -7,8 +7,7 @@ import (
 	"unicode"
 )
 
-func Day1Part1(input string) string {
-
+func Part1(input string) string {
 	var numbers []int
 
 	for _, line := range strings.Split(input, "\n") {
@@ -34,7 +33,7 @@ func Day1Part1(input string) string {
 	return strconv.Itoa(sum)
 }
 
-func Day1Part2(input string) string {
+func Part2(input string) string {
 
 	tokens := map[string]int{
 		"0":     0,

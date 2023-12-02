@@ -1,6 +1,9 @@
-package main
+package day02
 
-import "testing"
+import (
+	"adventOfGode2023"
+	"testing"
+)
 
 const input = `Game 1: 3 blue, 4 red; 1 red, 2 green, 6 blue; 2 green
 Game 2: 1 blue, 2 green; 3 green, 4 blue, 1 red; 1 green, 1 blue
@@ -10,9 +13,9 @@ Game 5: 6 red, 1 blue, 3 green; 2 blue, 1 red, 2 green
 `
 
 func TestDay2Part1(t *testing.T) {
-	Assert(t, 8, Day2Part1(input))
+	main.Assert(t, 8, Part1(input))
 }
 
 func TestDay2Part2(t *testing.T) {
-	Assert(t, 2286, Day2Part2(input))
+	main.Assert(t, 2286, Part2(input))
 }
