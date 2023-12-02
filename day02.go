@@ -40,5 +40,32 @@ func Day2Part1(input string) string {
 }
 
 func Day2Part2(input string) string {
-	return ""
+	input = strings.TrimSpace(input)
+	powerSum := 0
+	for _, line := range strings.Split(input, "\n") {
+		maxCubes := map[string]int{
+			"red":   0,
+			"green": 0,
+			"blue":  0,
+		}
+
+		split := strings.Split(line, ":")
+		_, rhs := split[0], split[1]
+		outtakes := strings.Split(strings.TrimSpace(rhs), "; ")
+		for _, outtake := range outtakes {
+			outtake := strings.TrimSpace(outtake)
+			parts := strings.Split(outtake, ", ")
+			for _, part := range parts {
+				partSplit := strings.Split(part, " ")
+				n, _ := strconv.Atoi(partSplit[0])
+				color := partSplit[1]
+				if n > maxCubes[color] {
+					maxCubes[color] = n
+				}
+			}
+		}
+		powerSum += maxCubes["red"] * maxCubes["green"] * maxCubes["blue"]
+	}
+	return strconv.Itoa(powerSum)
+
 }
