@@ -98,18 +98,44 @@ func parseSchematic(input string) Schematic {
 	return schematic
 }
 
-func printSchematic(schematic Schematic) {
-	for y, line := range schematic {
-		fmt.Printf("% 3d: ", y)
-		for _, r := range line {
-			fmt.Printf("%c", r)
+func Part2(input string) string {
+	schematic := parseSchematic(input)
+	partNumbers := partNumbers(schematic)
+	stars := stars(schematic)
+	sum := 0
+	for _, star := range stars {
+		var parts []PartNumber
+		for _, partNumber := range partNumbers {
+			if isAdjacent(star, partNumber) {
+				parts = append(parts, partNumber)
+			}
 		}
-		fmt.Println()
+		if len(parts) == 2 {
+			sum += parts[0].value * parts[1].value
+		}
 	}
+	return strconv.Itoa(sum)
 }
 
-func Part2(input string) string {
-	return ""
+func isAdjacent(point Point, number PartNumber) bool {
+	col := point.x >= number.x-1 && point.x <= number.x+number.l
+	row := point.y >= number.y-1 && point.y <= number.y+1
+	return col && row
+}
+
+func stars(schematic Schematic) (stars []Point) {
+	for y := 0; y < len(schematic); y++ {
+		for x := 0; x < len(schematic[y]); x++ {
+			if schematic[y][x] == '*' {
+				stars = append(stars, Point{x, y})
+			}
+		}
+	}
+	return
+}
+
+type Point struct {
+	x, y int
 }
 
 type PartNumber struct {

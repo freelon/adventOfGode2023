@@ -28,5 +28,5 @@ func TestSymbolCornerCases(t *testing.T) {
 }
 
 func TestDay2Part2(t *testing.T) {
-	util.Assert(t, 2286, Part2(input))
+	util.Assert(t, 467835, Part2(input))
 }
