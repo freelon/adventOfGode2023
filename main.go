@@ -3,6 +3,7 @@ package main
 import (
 	"adventOfGode2023/day01"
 	"adventOfGode2023/day02"
+	"adventOfGode2023/day03"
 	"errors"
 	"fmt"
 	"io"
@@ -18,15 +19,16 @@ type Part = func(input string) string
 var days = map[int][]Part{
 	1: {day01.Part1, day01.Part2},
 	2: {day02.Part1, day02.Part2},
+	3: {day03.Part1, day03.Part2},
 }
 
 func main() {
-	day := 2
+	day := 3
 	ensureInputExists(day)
 	input := ReadFile(dailyInputPath(day))
 	for part, f := range days[day] {
 		result := f(input)
-		fmt.Printf("Day %d part %d result: %s\n", day, part, result)
+		fmt.Printf("Day %d part %d result: %s\n", day, part+1, result)
 	}
 }
 
