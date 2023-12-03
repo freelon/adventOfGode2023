@@ -1,7 +1,7 @@
 package day02
 
 import (
-	"adventOfGode2023"
+	"adventOfGode2023/util"
 	"testing"
 )
 
@@ -13,9 +13,9 @@ Game 5: 6 red, 1 blue, 3 green; 2 blue, 1 red, 2 green
 `
 
 func TestDay2Part1(t *testing.T) {
-	main.Assert(t, 8, Part1(input))
+	util.Assert(t, 8, Part1(input))
 }
 
 func TestDay2Part2(t *testing.T) {
-	main.Assert(t, 2286, Part2(input))
+	util.Assert(t, 2286, Part2(input))
 }
