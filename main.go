@@ -5,6 +5,7 @@ import (
 	"adventOfGode2023/day02"
 	"adventOfGode2023/day03"
 	"adventOfGode2023/day04"
+	"adventOfGode2023/day05"
 	"errors"
 	"fmt"
 	"io"
@@ -22,10 +23,11 @@ var days = map[int][]Part{
 	2: {day02.Part1, day02.Part2},
 	3: {day03.Part1, day03.Part2},
 	4: {day04.Part1, day04.Part2},
+	5: {day05.Part1, day05.Part2},
 }
 
 func main() {
-	day := 4
+	day := 5
 	ensureInputExists(day)
 	input := ReadFile(dailyInputPath(day))
 	for part, f := range days[day] {
