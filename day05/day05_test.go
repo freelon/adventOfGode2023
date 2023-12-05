@@ -52,5 +52,5 @@ func TestRange(t *testing.T) {
 }
 
 func TestDay2Part2(t *testing.T) {
-	util.Assert(t, 30, Part2(input))
+	util.Assert(t, 46, Part2(input))
 }

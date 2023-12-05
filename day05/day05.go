@@ -75,5 +75,29 @@ func parseSeeds(s string) (result []int) {
 }
 
 func Part2(input string) string {
-	return ""
+	input = strings.TrimSpace(input)
+	blocks := strings.Split(input, "\n\n")
+	numbers := parseSeeds(blocks[0])
+	var maps []elvesMap
+	for i := 1; i < len(blocks); i++ {
+		maps = append(maps, parseMap(blocks[i]))
+	}
+
+	minLocation := math.MaxInt
+
+	for i := 0; i < len(numbers); i += 2 {
+		start := numbers[i]
+		l := numbers[i+1]
+		for j := start; j < start+l; j++ {
+			v := j
+			for _, m := range maps {
+				v = m.target(v)
+			}
+			if v < minLocation {
+				minLocation = v
+			}
+		}
+	}
+
+	return strconv.Itoa(minLocation)
 }

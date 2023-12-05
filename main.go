@@ -14,6 +14,7 @@ import (
 	"net/http"
 	"os"
 	"strings"
+	"time"
 )
 
 type Part = func(input string) string
@@ -31,8 +32,11 @@ func main() {
 	ensureInputExists(day)
 	input := ReadFile(dailyInputPath(day))
 	for part, f := range days[day] {
+		start := time.Now()
 		result := f(input)
+		duration := time.Since(start)
 		fmt.Printf("Day %d part %d result: %s\n", day, part+1, result)
+		fmt.Printf("Took %s\n", duration)
 	}
 }
 
