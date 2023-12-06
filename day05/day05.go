@@ -2,8 +2,10 @@ package day05
 
 import (
 	"math"
+	"slices"
 	"strconv"
 	"strings"
+	"sync"
 )
 
 func Part1(input string) string {
@@ -83,21 +85,33 @@ func Part2(input string) string {
 		maps = append(maps, parseMap(blocks[i]))
 	}
 
-	minLocation := math.MaxInt
+	nPairs := len(numbers) / 2
+	minLocations := make([]int, nPairs)
 
-	for i := 0; i < len(numbers); i += 2 {
-		start := numbers[i]
-		l := numbers[i+1]
-		for j := start; j < start+l; j++ {
-			v := j
-			for _, m := range maps {
-				v = m.target(v)
+	wg := sync.WaitGroup{}
+	wg.Add(nPairs)
+
+	for k := 0; k < nPairs; k++ {
+		go func(k int) {
+			defer wg.Done()
+			i := 2 * k
+			minLocation := math.MaxInt
+			start := numbers[i]
+			l := numbers[i+1]
+			for j := start; j < start+l; j++ {
+				v := j
+				for _, m := range maps {
+					v = m.target(v)
+				}
+				if v < minLocation {
+					minLocation = v
+				}
 			}
-			if v < minLocation {
-				minLocation = v
-			}
-		}
+			minLocations[k] = minLocation
+		}(k)
 	}
 
-	return strconv.Itoa(minLocation)
+	wg.Wait()
+
+	return strconv.Itoa(slices.Min(minLocations))
 }
