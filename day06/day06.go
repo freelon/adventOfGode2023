@@ -39,5 +39,27 @@ func numbers(s string) []int {
 }
 
 func Part2(input string) string {
-	return ""
+	lines := strings.Split(input, "\n")
+	time := number(lines[0])
+	record := number(lines[1])
+	winningConfigurations := 0
+	for t := 0; t < time+1; t++ {
+		speed := t
+		distance := (time - t) * speed
+		if distance > record {
+			winningConfigurations++
+		}
+	}
+	return strconv.Itoa(winningConfigurations)
+}
+
+func number(s string) int {
+	r := regexp.MustCompile(`\d+`)
+	allString := r.FindAllString(s, -1)
+	var result string
+	for _, s := range allString {
+		result += s
+	}
+	i, _ := strconv.Atoi(result)
+	return i
 }
