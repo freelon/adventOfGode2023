@@ -84,7 +84,7 @@ func parse(s string) (result []Hand) {
 }
 
 func getType(cards []Card) Type {
-	var counts map[Card]int = make(map[Card]int)
+	var counts = make(map[Card]int)
 	for _, card := range cards {
 		current := counts[card]
 		counts[card] = current + 1
@@ -163,5 +163,165 @@ func parseCards(c string) []Card {
 }
 
 func Part2(input string) string {
-	return ""
+	hands := parseForBest(input)
+	sort.Slice(hands, func(i, j int) bool {
+		if hands[i].t == hands[j].t {
+			// sort by highest card
+			for k := 0; k < 5; k++ {
+				if hands[i].cards[k] != hands[j].cards[k] {
+					return hands[i].cards[k] < hands[j].cards[k]
+				}
+			}
+			panic("cards all equal")
+		} else {
+			return hands[i].t < hands[j].t
+		}
+	})
+	totalWin := 0
+	for i, hand := range hands {
+		rank := i + 1
+		totalWin += rank * hand.bid
+	}
+	return strconv.Itoa(totalWin)
+}
+
+func parseForBest(s string) (result []Hand2) {
+	lines := strings.Split(s, "\n")
+	for _, line := range lines {
+		parts := strings.Split(line, " ")
+		c := parts[0]
+		bid, _ := strconv.Atoi(parts[1])
+		cards := parseCards2(c)
+		t := getTypeBest(cards)
+		hand := Hand2{
+			t:     t,
+			cards: cards,
+			bid:   bid,
+		}
+		result = append(result, hand)
+	}
+	return
+}
+
+func getTypeBest(cards []Card2) Type {
+	var realCounts = make(map[Card2]int)
+	for _, card := range cards {
+		current := realCounts[card]
+		realCounts[card] = current + 1
+	}
+	if realCounts[NJ] == 0 {
+		return type2OfCount(realCounts)
+	}
+
+	jokers := realCounts[NJ]
+	realCounts[NJ] = 0
+	var fakeHands []Type
+	for _, cardToBoost := range []Card2{NC2, NC3, NC4, NC5, NC6, NC7, NC8, NC9, NT, NQ, NK, NA} {
+		fakeCounts := realCounts
+		fakeCounts[cardToBoost] += jokers
+		fakeHands = append(fakeHands, type2OfCount(fakeCounts))
+		fakeCounts[cardToBoost] -= jokers
+	}
+	sort.Slice(fakeHands, func(i, j int) bool {
+		return fakeHands[i] < fakeHands[j]
+	})
+	return fakeHands[len(fakeHands)-1]
+}
+
+func type2OfCount(counts map[Card2]int) Type {
+	if hasExactCount2(counts, 5) {
+		return FiveOfAKind
+	} else if hasExactCount2(counts, 4) {
+		return FourOfAKind
+	} else if hasExactCount2(counts, 3) && hasExactCount2(counts, 2) {
+		return FullHouse
+	} else if hasExactCount2(counts, 3) {
+		return ThreeOfAKind
+	} else if hasExactCount2(counts, 2) {
+		pairs := 0
+		for _, count := range counts {
+			if count == 2 {
+				pairs++
+			}
+		}
+		if pairs == 2 {
+			return TwoPairs
+		} else {
+			return OnePair
+		}
+	} else {
+		return HighCard
+	}
+}
+
+type Hand2 struct {
+	t     Type
+	cards []Card2
+	bid   int
+}
+
+type Card2 int
+
+const (
+	NJ Card2 = iota
+	NC2
+	NC3
+	NC4
+	NC5
+	NC6
+	NC7
+	NC8
+	NC9
+	NT
+	NQ
+	NK
+	NA
+)
+
+func parseCards2(c string) []Card2 {
+	var cards []Card2
+	for _, card := range c {
+		var ct Card2
+		switch card {
+		case '2':
+			ct = NC2
+		case '3':
+			ct = NC3
+		case '4':
+			ct = NC4
+		case '5':
+			ct = NC5
+		case '6':
+			ct = NC6
+		case '7':
+			ct = NC7
+		case '8':
+			ct = NC8
+		case '9':
+			ct = NC9
+		case 'T':
+			ct = NT
+		case 'J':
+			ct = NJ
+		case 'Q':
+			ct = NQ
+		case 'K':
+			ct = NK
+		case 'A':
+			ct = NA
+		default:
+			panic("bad card")
+		}
+		cards = append(cards, ct)
+	}
+	return cards
+}
+
+func hasExactCount2(counts map[Card2]int, n int) bool {
+	for _, count := range counts {
+		if count == n {
+			return true
+		}
+	}
+	return false
 }
