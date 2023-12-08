@@ -49,5 +49,34 @@ type Pair struct {
 }
 
 func Part2(input string) string {
-	return ""
+	movements, desertMap := parse(input)
+	count := 0
+	nodes := make([]string, 0)
+	for key := range desertMap {
+		if key[2] == 'A' {
+			nodes = append(nodes, key)
+		}
+	}
+	for {
+		allFinished := true
+		for _, node := range nodes {
+			if node[2] != 'Z' {
+				allFinished = false
+			}
+		}
+		if allFinished {
+			break
+		}
+
+		m := movements[count%len(movements)]
+		count++
+		for i := 0; i < len(nodes); i++ {
+			if m == 'L' {
+				nodes[i] = desertMap[nodes[i]].l
+			} else if m == 'R' {
+				nodes[i] = desertMap[nodes[i]].r
+			}
+		}
+	}
+	return strconv.Itoa(count)
 }

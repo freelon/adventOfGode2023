@@ -8,7 +8,7 @@ import (
 	"adventOfGode2023/day05"
 	"adventOfGode2023/day06"
 	"adventOfGode2023/day07"
-	day08 "adventOfGode2023/dayTemplate"
+	"adventOfGode2023/day08"
 	"errors"
 	"fmt"
 	"io"
