@@ -1,6 +1,7 @@
 package day08
 
 import (
+	"fmt"
 	"regexp"
 	"strconv"
 	"strings"
@@ -57,17 +58,26 @@ func Part2(input string) string {
 			nodes = append(nodes, key)
 		}
 	}
+	firstAtTarget := make(map[int]int)
+	cycleTime := make(map[int]int)
 	for {
-		allFinished := true
-		for _, node := range nodes {
-			if node[2] != 'Z' {
-				allFinished = false
+		for n, node := range nodes {
+			if node[2] == 'Z' {
+				firstForNode, ok := firstAtTarget[n]
+				if !ok {
+					firstAtTarget[n] = count
+				} else {
+					// the node reaches his goal the 2nd time
+					_, ok2 := cycleTime[n]
+					if !ok2 {
+						cycleTime[n] = count - firstForNode
+					}
+				}
 			}
 		}
-		if allFinished {
+		if len(cycleTime) == len(nodes) {
 			break
 		}
-
 		m := movements[count%len(movements)]
 		count++
 		for i := 0; i < len(nodes); i++ {
@@ -78,5 +88,35 @@ func Part2(input string) string {
 			}
 		}
 	}
-	return strconv.Itoa(count)
+	fmt.Printf("After {} rounds all have cycled.\n")
+	for i := 0; i < len(nodes); i++ {
+		fmt.Printf("Node %d: first @ %d, cycle %d\n", i, firstAtTarget[i], cycleTime[i])
+	}
+	var rest []int
+	for i := 2; i < len(cycleTime); i++ {
+		rest = append(rest, cycleTime[i])
+	}
+	lcm := LCM(cycleTime[0], cycleTime[1], rest)
+	return strconv.Itoa(lcm)
+}
+
+// GCD greatest common divisor (GCD) via Euclidean algorithm
+func GCD(a, b int) int {
+	for b != 0 {
+		t := b
+		b = a % b
+		a = t
+	}
+	return a
+}
+
+// LCM find the Least Common Multiple (LCM) via GCD
+func LCM(a, b int, integers []int) int {
+	result := a * b / GCD(a, b)
+
+	for i := 0; i < len(integers); i++ {
+		result = LCM(result, integers[i], make([]int, 0))
+	}
+
+	return result
 }
