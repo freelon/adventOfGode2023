@@ -1,6 +1,7 @@
 package day09
 
 import (
+	"slices"
 	"strconv"
 	"strings"
 )
@@ -50,5 +51,36 @@ func numbers(line string) []int {
 }
 
 func Part2(input string) string {
-	return ""
+	result := 0
+	for _, line := range strings.Split(input, "\n") {
+		historyValues := numbers(line)
+		diffs := make([][]int, 0)
+		diffs = append(diffs, historyValues)
+		for {
+			lastLine := diffs[len(diffs)-1]
+			allZero := true
+			for i := 0; i < len(lastLine); i++ {
+				if lastLine[i] != 0 {
+					allZero = false
+					break
+				}
+			}
+			if !allZero {
+				newLine := make([]int, 0)
+				for i := 0; i < len(lastLine)-1; i++ {
+					newLine = append(newLine, lastLine[i+1]-lastLine[i])
+				}
+				diffs = append(diffs, newLine)
+			} else {
+				lastLine = slices.Insert(lastLine, 0, 0)
+				for d := len(diffs) - 2; d >= 0; d-- {
+					newValue := diffs[d][0] - diffs[d+1][0]
+					diffs[d] = slices.Insert(diffs[d], 0, newValue)
+				}
+				result += diffs[0][0]
+				break
+			}
+		}
+	}
+	return strconv.Itoa(result)
 }
