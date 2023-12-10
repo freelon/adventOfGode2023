@@ -170,5 +170,41 @@ func parse(input string) (pipes map[Pos]rune, start Pos) {
 }
 
 func Part2(input string) string {
-	return ""
+	pipes, start := parse(input)
+	// find two directions that are open to start
+	openToStarts := make([]Pos, 0)
+	if openToNorth(pipes[start.south()]) {
+		openToStarts = append(openToStarts, start.south())
+	}
+	if openToSouth(pipes[start.north()]) {
+		openToStarts = append(openToStarts, start.north())
+	}
+	if openToEast(pipes[start.west()]) {
+		openToStarts = append(openToStarts, start.west())
+	}
+	if openToWest(pipes[start.east()]) {
+		openToStarts = append(openToStarts, start.east())
+	}
+	fmt.Printf("search for path from %s to %s\n", openToStarts[0], openToStarts[1])
+	sp := shortestPath(pipes, openToStarts[1], openToStarts[0])
+	sp = append(sp, start)
+	s := shoelace(sp)
+	if s < 0 {
+		s *= -1
+	}
+	inners := s - len(sp)/2 + 1 // pick's theorem wtf
+	return strconv.Itoa(inners)
+}
+
+func shoelace(path []Pos) int {
+	n := len(path)
+	sumA := 0
+	for i := 0; i < n; i++ {
+		sumA += path[i].e * path[(i+1)%n].s
+	}
+	sumB := 0
+	for i := 0; i < n; i++ {
+		sumB += path[i].s * path[(i+1)%n].e
+	}
+	return (sumA - sumB) / 2
 }
