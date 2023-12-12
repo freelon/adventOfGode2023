@@ -2,7 +2,6 @@ package day12
 
 import (
 	"fmt"
-	"regexp"
 	"strconv"
 	"strings"
 )
@@ -21,9 +20,11 @@ func arrangements(line string) (result int) {
 	baseLine := []rune(parts[0])
 	rhs := strings.Split(parts[1], ",")
 	var numbers []int
+	neededDamaged := 0
 	for _, number := range rhs {
 		n, _ := strconv.Atoi(number)
 		numbers = append(numbers, n)
+		neededDamaged += n
 	}
 	var unknownIndices []int
 	for i, r := range baseLine {
@@ -31,112 +32,94 @@ func arrangements(line string) (result int) {
 			unknownIndices = append(unknownIndices, i)
 		}
 	}
-	return foo(baseLine, unknownIndices, numbers)
-}
-
-func foo(line []rune, unknownIndices []int, numbers []int) int {
-	if impossible(line, numbers) {
-		return 0
-	}
-
-	if len(unknownIndices) == 0 {
-		if isValid(line, numbers) {
-			return 1
-		} else {
-			return 0
+	nDamaged := 0
+	for _, r := range baseLine {
+		if r == '#' {
+			nDamaged++
 		}
 	}
+	offset := 0
+	return foo(baseLine, unknownIndices, numbers, nDamaged, neededDamaged, offset)
+}
+
+func foo(line []rune, unknownIndices []int, numbers []int, nDamaged int, neededDamaged int, offset int) int {
+	//niceLine := string(line)
+	//_ = niceLine
+	if len(unknownIndices)+nDamaged < neededDamaged {
+		return 0
+	}
+	if nDamaged > neededDamaged {
+		return 0
+	}
+	if offset == len(line) {
+		return 1
+	}
+
 	result := 0
 	unknownIndex := unknownIndices[0]
 	line[unknownIndex] = '.'
-	if hasValidPrefix(line, numbers) {
-		result += foo(line, unknownIndices[1:], numbers)
+	if valid, validLength, numbersConsumed, _ := prefix(line, numbers, offset); valid {
+		result += foo(line, unknownIndices[1:], numbers[numbersConsumed:], nDamaged, neededDamaged, offset+validLength)
 	}
 	line[unknownIndex] = '#'
-	if hasValidPrefix(line, numbers) {
-		result += foo(line, unknownIndices[1:], numbers)
+	if valid, validLength, numbersConsumed, _ := prefix(line, numbers, offset); valid {
+		result += foo(line, unknownIndices[1:], numbers[numbersConsumed:], nDamaged+1, neededDamaged, offset+validLength)
 	}
 	line[unknownIndex] = '?'
 	return result
 }
 
-func impossible(line []rune, numbers []int) bool {
-	springs := 0
-	unknown := 0
-
-	for _, r := range line {
-		if r == '#' {
-			springs++
-		}
-		if r == '?' {
-			unknown++
-		}
-	}
-
-	needed := 0
-	for _, number := range numbers {
-		needed += number
-	}
-
-	if springs > needed {
-		return true
-	}
-	if springs+unknown < needed {
-		return true
-	}
-	return false
-}
-
-func hasValidPrefix(line []rune, numbers []int) bool {
-	r := regexp.MustCompile(`#+`)
-	stringLine := string(line)
-	parts := strings.Split(stringLine, "?")
-
-	// if the string is not fully determined do not consider #s right before the next ?
-	s := parts[0]
-	if len(parts) > 1 {
-		for strings.HasSuffix(s, "#") {
-			s = strings.TrimSuffix(s, "#")
+func prefix(line []rune, numbers []int, offset int) (valid bool, plusOffset int, numbersConsumed int, moreDamaged int) {
+	foundNumbers := make([]int, 0)
+	last := '.'
+	x := 0
+	for i := offset; i < len(line); i++ {
+		l := last
+		c := line[i]
+		last = c
+		if l == '.' && c == '.' {
+			continue
+		} else if l == '.' && c == '#' {
+			x = 1
+		} else if l == '#' && c == '#' {
+			x++
+		} else if l == '#' && c == '.' {
+			foundNumbers = append(foundNumbers, x)
+			plusOffset = i - offset
+			x = 0
+		} else if c == '?' {
+			break
 		}
 	}
-
-	allString := r.FindAllString(s, -1)
-	if len(allString) > len(numbers) {
-		return false
+	if last == '#' { // stopped because end of string (no '?') and last not yet added
+		foundNumbers = append(foundNumbers, x)
+		plusOffset = len(line) - offset
+	} else if last == '.' {
+		plusOffset = len(line) - offset
 	}
-	for i := 0; i < len(allString); i++ {
-		if len(allString[i]) != numbers[i] {
-			return false
+	if len(foundNumbers) > len(numbers) {
+		return false, 0, 0, 0
+	}
+	for j := 0; j < len(foundNumbers); j++ {
+		if foundNumbers[j] != numbers[j] {
+			return false, 0, 0, 0
 		}
+		numbersConsumed++
+		moreDamaged += foundNumbers[j]
 	}
-	return true
-}
-
-func isValid(line []rune, numbers []int) bool {
-	r := regexp.MustCompile(`#+`)
-	stringLine := string(line)
-
-	allString := r.FindAllString(stringLine, -1)
-	if len(allString) != len(numbers) {
-		return false
-	}
-	for i := 0; i < len(allString); i++ {
-		if len(allString[i]) != numbers[i] {
-			return false
-		}
-	}
-	return true
+	valid = true
+	return
 }
 
 func Part2(input string) string {
 	lines := strings.Split(input, "\n")
 	sum := 0
-	for _, line := range lines {
+	for k, line := range lines {
 		parts := strings.Split(line, " ")
 		lhs := parts[0]
 		rhs := parts[1]
 		line = fmt.Sprintf("%s?%s?%s?%s?%s %s,%s,%s,%s,%s", lhs, lhs, lhs, lhs, lhs, rhs, rhs, rhs, rhs, rhs)
-		println(line)
+		fmt.Printf("% 4d %s\n", k, line)
 		sum += arrangements(line)
 	}
 	return strconv.Itoa(sum)
