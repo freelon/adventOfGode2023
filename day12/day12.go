@@ -58,21 +58,22 @@ func foo(line []rune, unknownIndices []int, numbers []int, nDamaged int, neededD
 	result := 0
 	unknownIndex := unknownIndices[0]
 	line[unknownIndex] = '.'
-	if valid, validLength, numbersConsumed, _ := prefix(line, numbers, offset); valid {
+	if valid, validLength, numbersConsumed := prefix(line, numbers, offset); valid {
 		result += foo(line, unknownIndices[1:], numbers[numbersConsumed:], nDamaged, neededDamaged, offset+validLength)
 	}
 	line[unknownIndex] = '#'
-	if valid, validLength, numbersConsumed, _ := prefix(line, numbers, offset); valid {
+	if valid, validLength, numbersConsumed := prefix(line, numbers, offset); valid {
 		result += foo(line, unknownIndices[1:], numbers[numbersConsumed:], nDamaged+1, neededDamaged, offset+validLength)
 	}
 	line[unknownIndex] = '?'
 	return result
 }
 
-func prefix(line []rune, numbers []int, offset int) (valid bool, plusOffset int, numbersConsumed int, moreDamaged int) {
+func prefix(line []rune, numbers []int, offset int) (valid bool, plusOffset int, numbersConsumed int) {
 	foundNumbers := make([]int, 0)
 	last := '.'
 	x := 0
+	currentExpectedNumberIndex := -1
 	for i := offset; i < len(line); i++ {
 		l := last
 		c := line[i]
@@ -81,6 +82,17 @@ func prefix(line []rune, numbers []int, offset int) (valid bool, plusOffset int,
 			continue
 		} else if l == '.' && c == '#' {
 			x = 1
+			currentExpectedNumberIndex++
+			if currentExpectedNumberIndex >= len(numbers) {
+				return false, 0, 0
+			}
+			currentExpectedNumber := numbers[currentExpectedNumberIndex]
+			for k := 0; k < currentExpectedNumber; k++ {
+				expectDamageIndex := i + k
+				if expectDamageIndex >= len(line) || line[expectDamageIndex] == '.' {
+					return false, 0, 0
+				}
+			}
 		} else if l == '#' && c == '#' {
 			x++
 		} else if l == '#' && c == '.' {
@@ -98,14 +110,13 @@ func prefix(line []rune, numbers []int, offset int) (valid bool, plusOffset int,
 		plusOffset = len(line) - offset
 	}
 	if len(foundNumbers) > len(numbers) {
-		return false, 0, 0, 0
+		return false, 0, 0
 	}
 	for j := 0; j < len(foundNumbers); j++ {
 		if foundNumbers[j] != numbers[j] {
-			return false, 0, 0, 0
+			return false, 0, 0
 		}
 		numbersConsumed++
-		moreDamaged += foundNumbers[j]
 	}
 	valid = true
 	return
