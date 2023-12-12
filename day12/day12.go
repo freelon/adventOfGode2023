@@ -39,11 +39,8 @@ func foo(line []rune, unknownIndices []int, numbers []int) int {
 		return 0
 	}
 
-	x := string(line)
-	x = x
 	if len(unknownIndices) == 0 {
 		if isValid(line, numbers) {
-			//println(string(line))
 			return 1
 		} else {
 			return 0
@@ -52,17 +49,14 @@ func foo(line []rune, unknownIndices []int, numbers []int) int {
 	result := 0
 	unknownIndex := unknownIndices[0]
 	line[unknownIndex] = '.'
-	x = string(line)
 	if hasValidPrefix(line, numbers) {
 		result += foo(line, unknownIndices[1:], numbers)
 	}
 	line[unknownIndex] = '#'
-	x = string(line)
 	if hasValidPrefix(line, numbers) {
 		result += foo(line, unknownIndices[1:], numbers)
 	}
 	line[unknownIndex] = '?'
-	x = string(line)
 	return result
 }
 
