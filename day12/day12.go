@@ -2,9 +2,10 @@ package day12
 
 import (
 	"fmt"
+	"maps"
+	"slices"
 	"strconv"
 	"strings"
-	"sync"
 )
 
 func Part1(input string) string {
@@ -17,6 +18,9 @@ func Part1(input string) string {
 }
 
 func arrangements(line string) (result int) {
+	maps.DeleteFunc(cache, func(s string, i int) bool {
+		return true
+	})
 	parts := strings.Split(line, " ")
 	baseLine := []rune(parts[0])
 	rhs := strings.Split(parts[1], ",")
@@ -39,117 +43,78 @@ func arrangements(line string) (result int) {
 			nDamaged++
 		}
 	}
-	offset := 0
-	return foo(baseLine, unknownIndices, numbers, nDamaged, neededDamaged, offset)
+	return foo(baseLine, numbers)
 }
 
-func foo(line []rune, unknownIndices []int, numbers []int, nDamaged int, neededDamaged int, offset int) int {
-	//niceLine := string(line)
-	//_ = niceLine
-	if len(unknownIndices)+nDamaged < neededDamaged {
-		return 0
-	}
-	if nDamaged > neededDamaged {
-		return 0
-	}
-	if offset == len(line) {
-		return 1
-	}
+var cache = make(map[string]int)
 
-	result := 0
-	unknownIndex := unknownIndices[0]
-	line[unknownIndex] = '.'
-	if valid, validLength, numbersConsumed := prefix(line, numbers, offset); valid {
-		result += foo(line, unknownIndices[1:], numbers[numbersConsumed:], nDamaged, neededDamaged, offset+validLength)
+func foo(line []rune, numbers []int) (result int) {
+	cacheKey := fmt.Sprintf("%s%d", string(line), len(numbers))
+	if v, ok := cache[cacheKey]; ok {
+		return v
 	}
-	line[unknownIndex] = '#'
-	if valid, validLength, numbersConsumed := prefix(line, numbers, offset); valid {
-		result += foo(line, unknownIndices[1:], numbers[numbersConsumed:], nDamaged+1, neededDamaged, offset+validLength)
-	}
-	line[unknownIndex] = '?'
-	return result
-}
+	defer func() { cache[cacheKey] = result }()
+	niceLine := string(line)
+	_ = niceLine
 
-func prefix(line []rune, numbers []int, offset int) (valid bool, plusOffset int, numbersConsumed int) {
-	foundNumbers := make([]int, 0)
-	last := '.'
-	x := 0
-	currentExpectedNumberIndex := -1
-	for i := offset; i < len(line); i++ {
-		l := last
-		c := line[i]
-		last = c
-		if l == '.' && c == '.' {
-			continue
-		} else if l == '.' && c == '#' {
-			x = 1
-			currentExpectedNumberIndex++
-			if currentExpectedNumberIndex >= len(numbers) {
-				return false, 0, 0
-			}
-			currentExpectedNumber := numbers[currentExpectedNumberIndex]
-			for k := 0; k < currentExpectedNumber; k++ {
-				expectDamageIndex := i + k
-				if expectDamageIndex >= len(line) || line[expectDamageIndex] == '.' {
-					return false, 0, 0
-				}
-			}
-		} else if l == '#' && c == '#' {
-			x++
-		} else if l == '#' && c == '.' {
-			foundNumbers = append(foundNumbers, x)
-			plusOffset = i - offset
-			x = 0
-		} else if c == '?' {
-			break
+	if len(numbers) == 0 {
+		if slices.Contains(line, '#') {
+			result = 0
+			return
+		} else {
+			result = 1
+			return
 		}
 	}
-	if last == '#' { // stopped because end of string (no '?') and last not yet added
-		foundNumbers = append(foundNumbers, x)
-		plusOffset = len(line) - offset
-	} else if last == '.' {
-		plusOffset = len(line) - offset
-	}
-	if len(foundNumbers) > len(numbers) {
-		return false, 0, 0
-	}
-	for j := 0; j < len(foundNumbers); j++ {
-		if foundNumbers[j] != numbers[j] {
-			return false, 0, 0
+
+	next := numbers[0]
+
+	if len(line) < next {
+		// doesn't fit
+		result = 0
+		return
+	} else if len(line) == next {
+		if !slices.Contains(line, '.') {
+			result = foo(line[len(line):], numbers[1:])
+		} else {
+			result = 0
 		}
-		numbersConsumed++
+		return
 	}
-	valid = true
+
+	// from here we always have at least next+1 runes left
+
+	if line[0] == '#' {
+		// either a match or abort
+		if !slices.Contains(line[:next], '.') && line[next] != '#' {
+			result = foo(line[next+1:], numbers[1:])
+		} else {
+			result = 0
+		}
+	} else if line[0] == '.' {
+		// advance 1
+		result = foo(line[1:], numbers)
+	} else if line[0] == '?' {
+		// assume it's a #
+		line[0] = '#'
+		result += foo(line, numbers)
+		line[0] = '?'
+		// assume it's a . and advance 1
+		result += foo(line[1:], numbers)
+	}
 	return
 }
 
 func Part2(input string) string {
 	lines := strings.Split(input, "\n")
-	results := make(chan int, len(lines))
-	var wg sync.WaitGroup
-	for _, line := range lines {
-		wg.Add(1)
-		line := line
-		go func() {
-			defer wg.Done()
-			parts := strings.Split(line, " ")
-			lhs := parts[0]
-			rhs := parts[1]
-			line = fmt.Sprintf("%s?%s?%s?%s?%s %s,%s,%s,%s,%s", lhs, lhs, lhs, lhs, lhs, rhs, rhs, rhs, rhs, rhs)
-			results <- arrangements(line)
-
-		}()
-	}
-	go func() {
-		wg.Wait()
-		close(results)
-	}()
 	sum := 0
-	count := 0
-	for res := range results {
-		count++
-		sum += res
-		fmt.Printf("% 4d/%d\n", count, len(lines))
+	for _, line := range lines {
+		line := line
+		parts := strings.Split(line, " ")
+		lhs := parts[0]
+		rhs := parts[1]
+		line = fmt.Sprintf("%s?%s?%s?%s?%s %s,%s,%s,%s,%s", lhs, lhs, lhs, lhs, lhs, rhs, rhs, rhs, rhs, rhs)
+		sum += arrangements(line)
 	}
 	return strconv.Itoa(sum)
 }
