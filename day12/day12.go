@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
+	"sync"
 )
 
 func Part1(input string) string {
@@ -124,14 +125,31 @@ func prefix(line []rune, numbers []int, offset int) (valid bool, plusOffset int,
 
 func Part2(input string) string {
 	lines := strings.Split(input, "\n")
+	results := make(chan int, len(lines))
+	var wg sync.WaitGroup
+	for _, line := range lines {
+		wg.Add(1)
+		line := line
+		go func() {
+			defer wg.Done()
+			parts := strings.Split(line, " ")
+			lhs := parts[0]
+			rhs := parts[1]
+			line = fmt.Sprintf("%s?%s?%s?%s?%s %s,%s,%s,%s,%s", lhs, lhs, lhs, lhs, lhs, rhs, rhs, rhs, rhs, rhs)
+			results <- arrangements(line)
+
+		}()
+	}
+	go func() {
+		wg.Wait()
+		close(results)
+	}()
 	sum := 0
-	for k, line := range lines {
-		parts := strings.Split(line, " ")
-		lhs := parts[0]
-		rhs := parts[1]
-		line = fmt.Sprintf("%s?%s?%s?%s?%s %s,%s,%s,%s,%s", lhs, lhs, lhs, lhs, lhs, rhs, rhs, rhs, rhs, rhs)
-		fmt.Printf("% 4d %s\n", k, line)
-		sum += arrangements(line)
+	count := 0
+	for res := range results {
+		count++
+		sum += res
+		fmt.Printf("% 4d/%d\n", count, len(lines))
 	}
 	return strconv.Itoa(sum)
 }
