@@ -57,8 +57,17 @@ func (b *Beam) right() {
 }
 
 func Part1(input string) string {
+	energized := sendBeam(input, Beam{
+		x: 0,
+		y: 0,
+		d: right,
+	})
+	return strconv.Itoa(energized)
+}
+
+func sendBeam(input string, start Beam) int {
+	beams := []Beam{start}
 	cave := parse(input)
-	beams := []Beam{{x: 0, y: 0, d: right}}
 	for len(beams) > 0 {
 		for _, beam := range beams {
 			cave[beam.y][beam.x].energizedCount++
@@ -173,7 +182,7 @@ func Part1(input string) string {
 			}
 		}
 	}
-	return strconv.Itoa(energized)
+	return energized
 }
 
 type Tile struct {
@@ -193,6 +202,24 @@ func parse(input string) (cave [][]Tile) {
 	return
 }
 
-func Part2(_ string) string {
-	return ""
+func Part2(input string) string {
+	height := len(strings.Split(input, "\n"))
+	width := len(strings.Split(input, "\n")[0])
+	starts := make([]Beam, 0)
+	for x := 0; x < width; x++ {
+		starts = append(starts, Beam{x: x, y: 0, d: down})
+		starts = append(starts, Beam{x: x, y: height - 1, d: up})
+	}
+	for y := 0; y < width; y++ {
+		starts = append(starts, Beam{x: 0, y: y, d: right})
+		starts = append(starts, Beam{x: width - 1, y: y, d: left})
+	}
+	mx := 0
+	for _, start := range starts {
+		e := sendBeam(input, start)
+		if e > mx {
+			mx = e
+		}
+	}
+	return strconv.Itoa(mx)
 }
