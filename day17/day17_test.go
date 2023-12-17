@@ -2,6 +2,7 @@ package day17
 
 import (
 	"adventOfGode2023/util"
+	"strconv"
 	"testing"
 )
 
@@ -24,5 +25,15 @@ func TestPart1(t *testing.T) {
 }
 
 func TestPart2(t *testing.T) {
-	util.Assert(t, nil, Part2(input))
+	//util.Assert(t, 94, Part2(input))
+	util.Assert(t, 71, Part2("111111111111\n999999999991\n999999999991\n999999999991\n999999999991"))
+}
+
+func TestReachable(t *testing.T) {
+	s := SeenUltra{
+		x:    0,
+		y:    0,
+		from: []direction{down, down, down, down},
+	}
+	util.Assert(t, 3, strconv.Itoa(len(s.reachable())))
 }

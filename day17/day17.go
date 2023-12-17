@@ -96,9 +96,9 @@ func (s Seen) reachable() []Seen {
 		}
 		return false
 	})
-	// trim max3
+	// trim cutList
 	for i := 0; i < len(result); i++ {
-		result[i].from = max3(result[i].from)
+		result[i].from = cutList(result[i].from, 3)
 	}
 	return result
 }
@@ -107,9 +107,9 @@ func prepend[T any](item T, list []T) []T {
 	return append([]T{item}, list...)
 }
 
-func max3[T any](list []T) []T {
-	if len(list) > 3 {
-		return list[:3]
+func cutList[T any](list []T, l int) []T {
+	if len(list) > l {
+		return list[:l]
 	} else {
 		return list
 	}
@@ -173,8 +173,55 @@ func parse(input string, w int, h int) [][]int {
 	return city
 }
 
-func Part2(_ string) string {
-	return ""
+func Part2(input string) string {
+	h := len(strings.Split(input, "\n"))
+	w := len(strings.Split(input, "\n")[0])
+	city := parse(input, w, h)
+	start1 := SeenUltra{1, 0, []direction{right}}
+	start2 := SeenUltra{0, 1, []direction{down}}
+	open := &MyHeap[SeenUltra]{HeapElement[SeenUltra]{city[start1.x][start1.y], start1},
+		HeapElement[SeenUltra]{city[start2.x][start2.y], start2}}
+	seen := map[string]bool{}
+	seen[start1.String()] = true
+	seen[start2.String()] = true
+	heap.Init(open)
+	for len(*open) > 0 {
+		current := heap.Pop(open).(HeapElement[SeenUltra])
+		if current.value.x == w-1 && current.value.y == h-1 {
+			if atLeast4Straight(current.value.from) {
+				// special requirement: the ultra crubicle has to move 4 steps in the same direction before it can stop
+				return strconv.Itoa(current.key)
+			} else {
+				fmt.Println("so sad")
+			}
+		}
+		for _, reachable := range current.value.reachable() {
+			// if within bounds ... add to heap
+			if reachable.x < 0 || reachable.x >= w || reachable.y < 0 || reachable.y >= h {
+				continue
+			}
+			s := reachable.String()
+			if _, ok := seen[s]; ok {
+				continue
+			}
+			seen[s] = true
+			heap.Push(open, HeapElement[SeenUltra]{current.key + city[reachable.x][reachable.y], reachable})
+		}
+	}
+	panic("didn't find a path at all, wtf")
+}
+
+func atLeast4Straight(from []direction) bool {
+	if len(from) < 4 {
+		return false
+	}
+	last := from[0]
+	for i := 0; i < 4; i++ {
+		if from[i] != last {
+			return false
+		}
+	}
+	return true
 }
 
 type HeapElement[T any] struct {
@@ -201,4 +248,79 @@ func (h *MyHeap[T]) Pop() any {
 	x := old[n-1]
 	*h = old[0 : n-1]
 	return x
+}
+
+type SeenUltra struct {
+	x, y int
+	from []direction
+}
+
+func (s SeenUltra) String() string {
+	return fmt.Sprintf("%d,%d,%v", s.x, s.y, s.from)
+}
+
+func (s *SeenUltra) equals(o *Seen) bool {
+	if s.x != o.x || s.y != o.y || len(s.from) != len(o.from) {
+		return false
+	}
+	for i := 0; i < len(s.from); i++ {
+		if s.from[i] != o.from[i] {
+			return false
+		}
+	}
+	return true
+}
+
+func (s SeenUltra) reachable() []SeenUltra {
+	result := []SeenUltra{
+		{
+			x:    s.x + 1,
+			y:    s.y,
+			from: prepend(right, s.from),
+		},
+		{
+			x:    s.x - 1,
+			y:    s.y,
+			from: prepend(left, s.from),
+		},
+		{
+			x:    s.x,
+			y:    s.y - 1,
+			from: prepend(up, s.from),
+		},
+		{
+			x:    s.x,
+			y:    s.y + 1,
+			from: prepend(down, s.from),
+		},
+	}
+
+	result = slices.DeleteFunc(result, func(seen SeenUltra) bool {
+		// clean all where 10 times same direction
+		if len(seen.from) > 10 && same(seen.from) {
+			return true
+		}
+		// clean where last direction is opposite of second last
+		if len(seen.from) > 1 && seen.from[0].opposite() == seen.from[1] {
+			return true
+		}
+		// clean where it turned before doing 4 in the same direction
+		if seen.from[0] != seen.from[1] {
+			if len(seen.from) < 5 {
+				return true
+			}
+			last := seen.from[1]
+			for i := 1; i <= 4; i++ {
+				if seen.from[i] != last {
+					return true
+				}
+			}
+		}
+		return false
+	})
+	// trim cutList
+	for i := 0; i < len(result); i++ {
+		result[i].from = cutList(result[i].from, 10)
+	}
+	return result
 }
