@@ -12,13 +12,13 @@ func Part1(input string) string {
 	h := len(strings.Split(input, "\n"))
 	w := len(strings.Split(input, "\n")[0])
 	city := parse(input, w, h)
-	start1 := Seen{1, 0, []direction{right}}
-	start2 := Seen{0, 1, []direction{down}}
+	start1 := Seen{1, 0, right, 1}
+	start2 := Seen{0, 1, down, 1}
 	open := &MyHeap[Seen]{HeapElement[Seen]{city[start1.x][start1.y], start1},
 		HeapElement[Seen]{city[start2.x][start2.y], start2}}
-	seen := map[string]bool{}
-	seen[start1.String()] = true
-	seen[start2.String()] = true
+	seen := map[Seen]bool{}
+	seen[start1] = true
+	seen[start2] = true
 	heap.Init(open)
 	for len(*open) > 0 {
 		current := heap.Pop(open).(HeapElement[Seen])
@@ -30,11 +30,10 @@ func Part1(input string) string {
 			if reachable.x < 0 || reachable.x >= w || reachable.y < 0 || reachable.y >= h {
 				continue
 			}
-			s := reachable.String()
-			if _, ok := seen[s]; ok {
+			if _, ok := seen[reachable]; ok {
 				continue
 			}
-			seen[s] = true
+			seen[reachable] = true
 			heap.Push(open, HeapElement[Seen]{current.key + city[reachable.x][reachable.y], reachable})
 		}
 	}
@@ -42,63 +41,40 @@ func Part1(input string) string {
 }
 
 type Seen struct {
-	x, y int
-	from []direction
-}
-
-func (s Seen) String() string {
-	return fmt.Sprintf("%d,%d,%v", s.x, s.y, s.from)
-}
-
-func (s *Seen) equals(o *Seen) bool {
-	if s.x != o.x || s.y != o.y || len(s.from) != len(o.from) {
-		return false
-	}
-	for i := 0; i < len(s.from); i++ {
-		if s.from[i] != o.from[i] {
-			return false
-		}
-	}
-	return true
+	x, y  int
+	from  direction
+	steps int
 }
 
 func (s Seen) reachable() []Seen {
-	result := []Seen{
-		{
-			x:    s.x + 1,
-			y:    s.y,
-			from: prepend(right, s.from),
-		},
-		{
-			x:    s.x - 1,
-			y:    s.y,
-			from: prepend(left, s.from),
-		},
-		{
-			x:    s.x,
-			y:    s.y + 1,
-			from: prepend(up, s.from),
-		},
-		{
-			x:    s.x,
-			y:    s.y - 1,
-			from: prepend(down, s.from),
-		},
-	}
-	// clean all where 4 times same direction
-	// clean where last direction is opposite of second last
-	result = slices.DeleteFunc(result, func(seen Seen) bool {
-		if len(seen.from) > 3 && same(seen.from) {
-			return true
+	result := make([]Seen, 0)
+	for _, d := range []direction{up, down, left, right} {
+		if s.from.opposite() == d {
+			continue
 		}
-		if len(seen.from) > 1 && seen.from[0].opposite() == seen.from[1] {
-			return true
+		if s.from == d {
+			if s.steps == 3 {
+				continue
+			} else {
+				dx, dy := d.movement()
+				result = append(result,
+					Seen{
+						x:     s.x + dx,
+						y:     s.y + dy,
+						from:  d,
+						steps: s.steps + 1,
+					})
+				continue
+			}
 		}
-		return false
-	})
-	// trim cutList
-	for i := 0; i < len(result); i++ {
-		result[i].from = cutList(result[i].from, 3)
+		// turn
+		dx, dy := d.movement()
+		result = append(result, Seen{
+			x:     s.x + dx,
+			y:     s.y + dy,
+			from:  d,
+			steps: 1,
+		})
 	}
 	return result
 }
@@ -147,6 +123,21 @@ func (d direction) opposite() direction {
 		return right
 	case right:
 		return left
+	default:
+		panic("unreachable")
+	}
+}
+
+func (d direction) movement() (dx int, dy int) {
+	switch d {
+	case down:
+		return 0, 1
+	case up:
+		return 0, -1
+	case left:
+		return -1, 0
+	case right:
+		return 1, 0
 	default:
 		panic("unreachable")
 	}
@@ -257,18 +248,6 @@ type SeenUltra struct {
 
 func (s SeenUltra) String() string {
 	return fmt.Sprintf("%d,%d,%v", s.x, s.y, s.from)
-}
-
-func (s *SeenUltra) equals(o *Seen) bool {
-	if s.x != o.x || s.y != o.y || len(s.from) != len(o.from) {
-		return false
-	}
-	for i := 0; i < len(s.from); i++ {
-		if s.from[i] != o.from[i] {
-			return false
-		}
-	}
-	return true
 }
 
 func (s SeenUltra) reachable() []SeenUltra {

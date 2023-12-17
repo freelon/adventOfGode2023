@@ -25,7 +25,7 @@ func TestPart1(t *testing.T) {
 }
 
 func TestPart2(t *testing.T) {
-	//util.Assert(t, 94, Part2(input))
+	util.Assert(t, 94, Part2(input))
 	util.Assert(t, 71, Part2("111111111111\n999999999991\n999999999991\n999999999991\n999999999991"))
 }
 
