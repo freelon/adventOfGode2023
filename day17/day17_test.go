@@ -31,9 +31,10 @@ func TestPart2(t *testing.T) {
 
 func TestReachable(t *testing.T) {
 	s := SeenUltra{
-		x:    0,
-		y:    0,
-		from: []direction{down, down, down, down},
+		x:     0,
+		y:     0,
+		from:  down,
+		steps: 4,
 	}
 	util.Assert(t, 3, strconv.Itoa(len(s.reachable())))
 }
