@@ -18,6 +18,7 @@ import (
 	"adventOfGode2023/day15"
 	"adventOfGode2023/day16"
 	"adventOfGode2023/day17"
+	"adventOfGode2023/day18"
 	"errors"
 	"fmt"
 	"io"
@@ -49,10 +50,11 @@ var days = map[int][]Part{
 	15: {day15.Part1, day15.Part2},
 	16: {day16.Part1, day16.Part2},
 	17: {day17.Part1, day17.Part2},
+	18: {day18.Part1, day18.Part2},
 }
 
 func main() {
-	day := 17
+	day := 18
 	ensureInputExists(day)
 	input := ReadFile(dailyInputPath(day))
 	input = strings.TrimSpace(input)
