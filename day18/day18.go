@@ -36,8 +36,37 @@ func Part1(input string) string {
 	return strconv.Itoa(result)
 }
 
-func Part2(_ string) string {
-	return ""
+func Part2(input string) string {
+	points := []Pos{{0, 0}}
+	walked := 0
+	for _, s := range strings.Split(input, "\n") {
+		parts := strings.Split(s, " ")
+		last := points[len(points)-1]
+		d := parts[2][7]
+		long, _ := strconv.ParseInt(parts[2][2:7], 16, 0)
+		l := int(long)
+		dx, dy := 0, 0
+		switch d {
+		case '3':
+			dy = -l
+		case '1':
+			dy = l
+		case '2':
+			dx = -l
+		case '0':
+			dx = l
+		}
+		next := Pos{x: last.x + dx, y: last.y + dy}
+		points = append(points, next)
+		walked += l
+	}
+
+	// again picks formula to calculate number of blocks within the polygon (assuming the path doesn't cross itself)
+	s := shoelace(points)
+	inners := s - walked/2 + 1
+	result := inners + walked
+	return strconv.Itoa(result)
+
 }
 
 type Pos struct {
