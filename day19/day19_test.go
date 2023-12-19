@@ -28,5 +28,5 @@ func TestPart1(t *testing.T) {
 }
 
 func TestPart2(t *testing.T) {
-	util.Assert(t, nil, Part2(input))
+	util.Assert(t, 167409079868000, Part2(input))
 }

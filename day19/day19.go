@@ -1,6 +1,7 @@
 package day19
 
 import (
+	"maps"
 	"strconv"
 	"strings"
 )
@@ -99,6 +100,93 @@ type Condition struct {
 	target     int
 }
 
-func Part2(_ string) string {
-	return ""
+func (c Condition) invert() *Condition {
+	var com string
+	var target int
+	if c.comparator == "<" {
+		com = ">"
+		target = c.target - 1
+	} else {
+		com = "<"
+		target = c.target + 1
+	}
+	r := Condition{
+		variable:   c.variable,
+		comparator: com,
+		target:     target,
+	}
+	return &r
+}
+
+func Part2(input string) string {
+	workflows, _ := parse(input)
+	All := Foo{mins: map[string]int{"x": 1, "m": 1, "a": 1, "s": 1}, maxs: map[string]int{"x": 4000, "m": 4000, "a": 4000, "s": 4000}}
+	acceptables := count(All, workflows["in"], workflows)
+	sum := 0
+	for _, acceptable := range acceptables {
+		x := 1
+		for k, v := range acceptable.mins {
+			x *= acceptable.maxs[k] - v + 1
+		}
+		sum += x
+	}
+	return strconv.Itoa(sum)
+}
+
+func count(foo Foo, workflow Workflow, workflows map[string]Workflow) (result []Foo) {
+	if foo.empty() {
+		return make([]Foo, 0)
+	}
+	foo = foo.clone()
+	for _, rule := range workflow.rules {
+		next := rule.result
+		newFoo := foo.restrict(rule.condition)
+		if rule.condition != nil {
+			foo = foo.restrict(rule.condition.invert())
+		}
+		if next == "R" {
+			continue
+		}
+		if next == "A" {
+			result = append(result, newFoo)
+			continue
+		}
+		subresult := count(newFoo, workflows[next], workflows)
+		result = append(result, subresult...)
+	}
+	return
+}
+
+type Foo struct {
+	mins map[string]int
+	maxs map[string]int
+}
+
+func (f Foo) empty() bool {
+	for k, v := range f.mins {
+		if v > f.maxs[k] {
+			return true
+		}
+	}
+	return false
+}
+
+func (f Foo) restrict(condition *Condition) Foo {
+	if condition == nil {
+		return f
+	}
+	result := f.clone()
+	if condition.comparator == "<" {
+		result.maxs[condition.variable] = condition.target - 1
+	} else {
+		result.mins[condition.variable] = condition.target + 1
+	}
+	return result
+}
+
+func (f Foo) clone() Foo {
+	return Foo{
+		mins: maps.Clone(f.mins),
+		maxs: maps.Clone(f.maxs),
+	}
 }
