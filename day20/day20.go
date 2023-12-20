@@ -191,6 +191,81 @@ func (m Message) String() string {
 	return fmt.Sprintf("%s %s> %s", m.from, signal, m.dest)
 }
 
-func Part2(_ string) string {
-	return ""
+func Part2(input string) string {
+	var modules = make(map[string]Module)
+	var reverseDestinations = make(map[string][]string)
+	for _, line := range strings.Split(input, "\n") {
+		parts := strings.Split(line, " -> ")
+		destinations := strings.Split(parts[1], ", ")
+		nameType := parts[0]
+		var module Module
+		if nameType[0] == '%' {
+			module = &FlipFlop{
+				_name:        nameType[1:],
+				destinations: destinations,
+				last:         false,
+			}
+		} else if nameType[0] == '&' {
+			module = &Conjunction{
+				_name:        nameType[1:],
+				destinations: destinations,
+				last:         make(map[string]bool),
+			}
+		} else {
+			module = &Broadcaster{
+				_name:        nameType,
+				destinations: destinations,
+			}
+		}
+		modules[module.name()] = module
+
+		for _, destination := range destinations {
+			rd, ok := reverseDestinations[destination]
+			if ok {
+				reverseDestinations[destination] = append(rd, module.name())
+			} else {
+				reverseDestinations[destination] = []string{module.name()}
+			}
+		}
+	}
+	for _, v := range modules {
+		if conjunction, ok := v.(*Conjunction); ok {
+			allTargetingThisConjunction := reverseDestinations[conjunction.name()]
+			for _, incoming := range allTargetingThisConjunction {
+				conjunction.last[incoming] = false
+			}
+		}
+	}
+	queue := Queue{}
+	for pushes := 1; true; pushes++ {
+		queue.enqueue(Message{"broadcaster", false, "button"})
+		for message, ok := queue.dequeue(); ok; message, ok = queue.dequeue() {
+			if message.dest == "rx" {
+				if message.signal == false {
+					return strconv.Itoa(pushes)
+				}
+			}
+
+			receiver, ok := modules[message.dest]
+			if !ok {
+				continue
+			}
+			next := receiver.process(message)
+			for _, m := range next {
+				queue.enqueue(m)
+			}
+		}
+		upCount := 0
+		for _, v := range modules {
+			if ff, ok := v.(*FlipFlop); ok {
+				if ff.last {
+					fmt.Print(1)
+					upCount++
+				} else {
+					fmt.Print(0)
+				}
+			}
+		}
+	}
+	panic("finished without 'rx' receiving a low signal")
 }
