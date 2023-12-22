@@ -62,7 +62,21 @@ var days = map[int][]Part{
 }
 
 func main() {
-	day := 22
+	if len(os.Args) > 1 && "--all" == os.Args[1] {
+		start := time.Now()
+		for day := 0; day < 26; day++ {
+			if _, ok := days[day]; ok {
+				run(day)
+			}
+		}
+		fmt.Printf("Took %s to run all days\n", time.Now().Sub(start))
+	} else {
+		day := 22
+		run(day)
+	}
+}
+
+func run(day int) {
 	ensureInputExists(day)
 	input := ReadFile(dailyInputPath(day))
 	input = strings.TrimSpace(input)
@@ -70,17 +84,15 @@ func main() {
 		start := time.Now()
 		result := f(input)
 		duration := time.Since(start)
-		fmt.Printf("Day %d part %d result: %s\n", day, part+1, result)
-		fmt.Printf("Took %s\n", duration)
+		fmt.Printf("Day %d part %d result: \033[1m%s\033[0m\n", day, part+1, result)
+		fmt.Printf("\u001B[2mTook\u001B[0m \033[3m%s\033[0m\n", duration)
 	}
 }
 
 func ensureInputExists(day int) {
 	var myFilePath = dailyInputPath(day)
 
-	if doesFileExist(myFilePath) {
-		fmt.Printf("file '%s' exists\n", myFilePath)
-	} else {
+	if !doesFileExist(myFilePath) {
 		fmt.Printf("file '%s' does not exist. downloading ...\n", myFilePath)
 		download(day)
 	}

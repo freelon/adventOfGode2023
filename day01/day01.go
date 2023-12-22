@@ -60,7 +60,7 @@ func Part2(input string) string {
 	var numbers []int
 
 	for _, line := range strings.Split(input, "\n") {
-		fmt.Println("line: ", line)
+		//fmt.Println("line: ", line)
 		if len(line) == 0 {
 			continue
 		}
@@ -73,7 +73,7 @@ func Part2(input string) string {
 			for t, v := range tokens {
 				if strings.HasPrefix(sub, t) {
 					digits = append(digits, v)
-					fmt.Println("..found ", t)
+					//fmt.Println("..found ", t)
 					continue Outer
 				}
 			}
@@ -82,7 +82,7 @@ func Part2(input string) string {
 		numberStr := fmt.Sprintf("%d%d", digits[0], digits[len(digits)-1])
 		number, _ := strconv.Atoi(numberStr)
 		numbers = append(numbers, number)
-		fmt.Println(number)
+		//fmt.Println(number)
 	}
 
 	var sum int

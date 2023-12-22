@@ -15,7 +15,7 @@ func Part1(input string) string {
 	for _, partNumber := range partNumbers {
 		if hasSymbolNeighbor(partNumber, schematic) {
 			sum += partNumber.value
-			println(partNumber.value)
+			//println(partNumber.value)
 		}
 	}
 	return strconv.Itoa(sum)
