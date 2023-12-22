@@ -83,7 +83,7 @@ FALLING:
 				hopefullyEmpty = append(hopefullyEmpty, c)
 			}
 		}
-		for j := 0; j < i; j++ {
+		for j := i - 1; j >= 0; j-- {
 			if bricks[j].highest() != targetZ {
 				continue
 			}
@@ -95,7 +95,16 @@ FALLING:
 		current.to.z -= 1
 		current.from.z -= 1
 		bricks[i] = current
+		// keep pointer at current brick to check if it can fall further
 		i--
+		// maintain sort by lowest
+		if i > 0 {
+			for bricks[i].lowest() < bricks[i-1].lowest() {
+				bricks[i], bricks[i-1] = bricks[i-1], bricks[i]
+				// keep pointer on current brick, again
+				i--
+			}
+		}
 	}
 
 	return bricks
@@ -126,6 +135,10 @@ func (b Brick) containsAny(cs []C) bool {
 
 func (b Brick) highest() int {
 	return max(b.from.z, b.to.z)
+}
+
+func (b Brick) lowest() int {
+	return min(b.from.z, b.to.z)
 }
 
 type C struct {
