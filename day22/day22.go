@@ -2,18 +2,14 @@ package day22
 
 import (
 	"adventOfGode2023/util"
-	"fmt"
 	"slices"
 	"strconv"
 	"strings"
-	"time"
 )
 
 func Part1(input string) string {
 	bricks := parse(input)
-	start := time.Now()
 	bricks = applyGravity(bricks)
-	fmt.Println(time.Now().Sub(start))
 	supports := supporting(bricks)
 	supporterCount := make([]int, len(supports))
 	for _, supported := range supports {
@@ -73,19 +69,14 @@ FALLING:
 		if lowestZ <= 1 {
 			continue
 		}
-		var hopefullyEmpty []C
-		targetZ := lowestZ - 1
-		for x := min(current.from.x, current.to.x); x <= max(current.from.x, current.to.x); x++ {
-			for y := min(current.from.y, current.to.y); y <= max(current.from.y, current.to.y); y++ {
-				c := C{x, y, targetZ}
-				hopefullyEmpty = append(hopefullyEmpty, c)
-			}
-		}
+		target := current
+		target.from.z--
+		target.to.z--
 		for j := i - 1; j >= 0; j-- {
-			if bricks[j].to.z != targetZ {
+			if bricks[j].to.z != target.from.z {
 				continue
 			}
-			if bricks[j].containsAny(hopefullyEmpty) {
+			if bricks[j].overlaps(target) {
 				continue FALLING
 			}
 		}
@@ -127,6 +118,31 @@ func (b Brick) containsAny(cs []C) bool {
 		if b.contains(c) {
 			return true
 		}
+	}
+	return false
+}
+
+func (b Brick) overlaps(other Brick) bool {
+	overlapZ := intervalOverlaps(b.from.z, b.to.z, other.from.z, other.to.z)
+	overlapY := intervalOverlaps(b.from.y, b.to.y, other.from.y, other.to.y)
+	overlapX := intervalOverlaps(b.from.x, b.to.x, other.from.x, other.to.x)
+
+	return overlapX && overlapY && overlapZ
+}
+
+// intervalOverlaps interval borders are inclusive
+func intervalOverlaps(aStart int, aEnd int, bStart int, bEnd int) bool {
+	if aStart <= bStart && bStart <= aEnd {
+		return true
+	}
+	if aStart <= bEnd && bEnd <= aEnd {
+		return true
+	}
+	if bStart <= aStart && aStart <= bEnd {
+		return true
+	}
+	if bStart <= aEnd && aEnd <= bEnd {
+		return true
 	}
 	return false
 }
