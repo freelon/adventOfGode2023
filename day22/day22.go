@@ -2,15 +2,25 @@ package day22
 
 import (
 	"adventOfGode2023/util"
+	"fmt"
 	"slices"
 	"strconv"
 	"strings"
+	"time"
 )
 
 func Part1(input string) string {
 	bricks := parse(input)
+	start := time.Now()
 	bricks = applyGravity(bricks)
+	fmt.Println(time.Now().Sub(start))
 	supports := supporting(bricks)
+	supporterCount := make([]int, len(supports))
+	for _, supported := range supports {
+		for _, supportee := range supported {
+			supporterCount[supportee]++
+		}
+	}
 	disintegratable := 0
 SUPPORTER:
 	for s := 0; s < len(supports); s++ {
@@ -20,13 +30,7 @@ SUPPORTER:
 			continue
 		}
 		for _, supportee := range supporting {
-			supporterCount := 0
-			for i := 0; i < len(supports); i++ {
-				if slices.Contains(supports[i], supportee) {
-					supporterCount++
-				}
-			}
-			if supporterCount < 2 {
+			if supporterCount[supportee] < 2 {
 				continue SUPPORTER
 			}
 		}
@@ -59,35 +63,41 @@ func supporting(bricks []Brick) map[int][]int {
 }
 
 func applyGravity(bricks []Brick) []Brick {
-	changed := true
-	for changed {
-		changed = false
-	FALLING:
-		for i := 0; i < len(bricks); i++ {
-			current := bricks[i]
-			lowestZ := min(current.to.z, current.from.z)
-			if lowestZ <= 1 {
+	slices.SortFunc(bricks, func(a, b Brick) int {
+		az := min(a.from.z, a.to.z)
+		bz := min(b.from.z, b.to.z)
+		return az - bz
+	})
+FALLING:
+	for i := 0; i < len(bricks); i++ {
+		current := bricks[i]
+		lowestZ := min(current.to.z, current.from.z)
+		if lowestZ <= 1 {
+			continue
+		}
+		var hopefullyEmpty []C
+		targetZ := lowestZ - 1
+		for x := min(current.from.x, current.to.x); x <= max(current.from.x, current.to.x); x++ {
+			for y := min(current.from.y, current.to.y); y <= max(current.from.y, current.to.y); y++ {
+				c := C{x, y, targetZ}
+				hopefullyEmpty = append(hopefullyEmpty, c)
+			}
+		}
+		for j := 0; j < i; j++ {
+			if bricks[j].highest() != targetZ {
 				continue
 			}
-			var hopefullyEmpty []C
-			for x := min(current.from.x, current.to.x); x <= max(current.from.x, current.to.x); x++ {
-				for y := min(current.from.y, current.to.y); y <= max(current.from.y, current.to.y); y++ {
-					c := C{x, y, lowestZ - 1}
-					hopefullyEmpty = append(hopefullyEmpty, c)
-				}
+			if bricks[j].containsAny(hopefullyEmpty) {
+				continue FALLING
 			}
-			for j := 0; j < len(bricks); j++ {
-				if bricks[j].containsAny(hopefullyEmpty) {
-					continue FALLING
-				}
-			}
-			// no collision, let's change the world for a ~~better~~ sandier place
-			current.to.z -= 1
-			current.from.z -= 1
-			bricks[i] = current
-			changed = true
 		}
+		// no collision, let's change the world for a ~~better~~ sandier place
+		current.to.z -= 1
+		current.from.z -= 1
+		bricks[i] = current
+		i--
 	}
+
 	return bricks
 }
 
@@ -112,6 +122,10 @@ func (b Brick) containsAny(cs []C) bool {
 		}
 	}
 	return false
+}
+
+func (b Brick) highest() int {
+	return max(b.from.z, b.to.z)
 }
 
 type C struct {
