@@ -10,7 +10,7 @@ func Part1(input string) string {
 	return solve1(input, 64)
 }
 
-func solve1(input string, wantedSteps int) string {
+func solve1(input string, remainingSteps int) string {
 	garden := make(map[Pos]rune)
 	var start Pos
 	for y, line := range strings.Split(input, "\n") {
@@ -22,7 +22,7 @@ func solve1(input string, wantedSteps int) string {
 			garden[Pos{x, y}] = r
 		}
 	}
-	count := count(start, garden, wantedSteps)
+	count := count(start, garden, remainingSteps)
 	return strconv.Itoa(count)
 }
 
@@ -31,7 +31,7 @@ type Progress struct {
 	d int
 }
 
-func count(start Pos, garden map[Pos]rune, wantedSteps int) (reachableCount int) {
+func count(start Pos, garden map[Pos]rune, remainingSteps int) (reachableCount int) {
 	var queue util.Queue[Progress]
 	queue.Enqueue(Progress{p: start, d: 0})
 	visited := make(map[Pos]bool)
@@ -46,10 +46,10 @@ func count(start Pos, garden map[Pos]rune, wantedSteps int) (reachableCount int)
 		if _, ok := visited[next.p]; ok {
 			continue
 		}
-		if next.d > wantedSteps {
+		if next.d > remainingSteps {
 			continue
 		}
-		if next.d%2 == wantedSteps%2 {
+		if next.d%2 == remainingSteps%2 {
 			reachableCount++
 		}
 		visited[next.p] = true
@@ -59,20 +59,6 @@ func count(start Pos, garden map[Pos]rune, wantedSteps int) (reachableCount int)
 		}
 	}
 	return
-}
-
-func contains(reachable uint64, c int) bool {
-	var x uint64 = 1 << (c - 1)
-	y := reachable & x
-	return y > 0
-}
-
-func nOnes(steps int) (result uint64) {
-	for i := 0; i < steps; i++ {
-		result = result << 1
-		result += 1
-	}
-	return result
 }
 
 type Pos struct {

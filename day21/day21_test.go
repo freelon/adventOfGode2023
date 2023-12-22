@@ -18,7 +18,6 @@ const input = `...........
 ...........`
 
 func TestPart1(t *testing.T) {
-	util.AssertEq(t, 1+2+4+8, nOnes(4))
 	util.Assert(t, 16, solve1(input, 6))
 }
 
