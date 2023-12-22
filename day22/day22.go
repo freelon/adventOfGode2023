@@ -65,7 +65,7 @@ func applyGravity(bricks []Brick) []Brick {
 		for i := 0; i < len(bricks); i++ {
 			current := bricks[i]
 			lowestZ := min(current.to.z, current.from.z)
-			if lowestZ == 1 {
+			if lowestZ <= 1 {
 				continue
 			}
 			var hopefullyEmpty []C
@@ -133,6 +133,21 @@ func parse(input string) (result []Brick) {
 	return
 }
 
-func Part2(_ string) string {
-	return ""
+func Part2(input string) string {
+	bricks := parse(input)
+	bricks = applyGravity(bricks)
+	count := 0
+	for diss := 0; diss < len(bricks); diss++ {
+		before := slices.Clone(bricks)
+		before[diss].to.z = -1
+		before[diss].from.z = -1
+		after := slices.Clone(before)
+		after = applyGravity(after)
+		for i := 0; i < len(before); i++ {
+			if before[i].from.z > after[i].from.z {
+				count++
+			}
+		}
+	}
+	return strconv.Itoa(count)
 }
