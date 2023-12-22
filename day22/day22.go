@@ -64,9 +64,7 @@ func supporting(bricks []Brick) map[int][]int {
 
 func applyGravity(bricks []Brick) []Brick {
 	slices.SortFunc(bricks, func(a, b Brick) int {
-		az := min(a.from.z, a.to.z)
-		bz := min(b.from.z, b.to.z)
-		return az - bz
+		return a.from.z - b.from.z
 	})
 FALLING:
 	for i := 0; i < len(bricks); i++ {
@@ -84,7 +82,7 @@ FALLING:
 			}
 		}
 		for j := i - 1; j >= 0; j-- {
-			if bricks[j].highest() != targetZ {
+			if bricks[j].to.z != targetZ {
 				continue
 			}
 			if bricks[j].containsAny(hopefullyEmpty) {
@@ -99,7 +97,7 @@ FALLING:
 		i--
 		// maintain sort by lowest
 		if i > 0 {
-			for bricks[i].lowest() < bricks[i-1].lowest() {
+			for bricks[i].from.z < bricks[i-1].from.z {
 				bricks[i], bricks[i-1] = bricks[i-1], bricks[i]
 				// keep pointer on current brick, again
 				i--
@@ -116,12 +114,12 @@ type Brick struct {
 }
 
 func (b Brick) contains(c C) bool {
-	return c.x >= min(b.from.x, b.to.x) &&
-		c.x <= max(b.from.x, b.to.x) &&
-		c.y >= min(b.from.y, b.to.y) &&
-		c.y <= max(b.from.y, b.to.y) &&
-		c.z >= min(b.from.z, b.to.z) &&
-		c.z <= max(b.from.z, b.to.z)
+	return c.x >= b.from.x &&
+		c.x <= b.to.x &&
+		c.y >= b.from.y &&
+		c.y <= b.to.y &&
+		c.z >= b.from.z &&
+		c.z <= b.to.z
 }
 
 func (b Brick) containsAny(cs []C) bool {
@@ -131,14 +129,6 @@ func (b Brick) containsAny(cs []C) bool {
 		}
 	}
 	return false
-}
-
-func (b Brick) highest() int {
-	return max(b.from.z, b.to.z)
-}
-
-func (b Brick) lowest() int {
-	return min(b.from.z, b.to.z)
 }
 
 type C struct {
