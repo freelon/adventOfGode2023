@@ -1,6 +1,7 @@
 package day22
 
 import (
+	"adventOfGode2023/util"
 	"slices"
 	"strconv"
 	"strings"
@@ -136,18 +137,31 @@ func parse(input string) (result []Brick) {
 func Part2(input string) string {
 	bricks := parse(input)
 	bricks = applyGravity(bricks)
-	count := 0
-	for diss := 0; diss < len(bricks); diss++ {
-		before := slices.Clone(bricks)
-		before[diss].to.z = -1
-		before[diss].from.z = -1
-		after := slices.Clone(before)
-		after = applyGravity(after)
-		for i := 0; i < len(before); i++ {
-			if before[i].from.z > after[i].from.z {
-				count++
-			}
+	supports := supporting(bricks)
+	supporterCount := make([]int, len(supports))
+	for _, supported := range supports {
+		for _, supportee := range supported {
+			supporterCount[supportee]++
 		}
 	}
-	return strconv.Itoa(count)
+	fallingSum := 0
+	for supporter := 0; supporter < len(supports); supporter++ {
+		hits := make([]int, len(supports))
+		queue := util.Queue[int]{}
+		falling := 0
+		for _, supportee := range supports[supporter] {
+			queue.Enqueue(supportee)
+		}
+		for supportee, ok := queue.Dequeue(); ok; supportee, ok = queue.Dequeue() {
+			hits[supportee]++
+			if hits[supportee] == supporterCount[supportee] {
+				falling++
+				for _, next := range supports[supportee] {
+					queue.Enqueue(next)
+				}
+			}
+		}
+		fallingSum += falling
+	}
+	return strconv.Itoa(fallingSum)
 }
