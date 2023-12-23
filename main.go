@@ -23,6 +23,7 @@ import (
 	"adventOfGode2023/day20"
 	"adventOfGode2023/day21"
 	"adventOfGode2023/day22"
+	"adventOfGode2023/day23"
 	"errors"
 	"fmt"
 	"io"
@@ -59,6 +60,7 @@ var days = map[int][]Part{
 	20: {day20.Part1, day20.Part2},
 	21: {day21.Part1, day21.Part2},
 	22: {day22.Part1, day22.Part2},
+	23: {day23.Part1, day23.Part2},
 }
 
 func main() {
@@ -71,7 +73,7 @@ func main() {
 		}
 		fmt.Printf("Took %s to run all days\n", time.Now().Sub(start))
 	} else {
-		day := 21
+		day := 23
 		run(day)
 	}
 }
