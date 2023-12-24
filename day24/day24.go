@@ -10,7 +10,6 @@ import (
 func Part1(input string) string {
 	hail := parse(input)
 	return strconv.Itoa(solve(hail, 200000000000000, 400000000000000))
-	// 12739 too low
 }
 
 func solve(hail []Hail, lBound int, uBound int) (count int) {
@@ -20,17 +19,11 @@ func solve(hail []Hail, lBound int, uBound int) (count int) {
 			b := hail[j]
 			c++
 			x, y, ok := intersect(a, b)
-			fmt.Printf("%s\n%s\nx=%f, y=%f  (%v)\n", a, b, x, y, ok)
-			fmt.Printf("%d %d ", i, j)
 			if ok {
 				if x < float64(lBound) || x > float64(uBound) || y < float64(lBound) || y > float64(uBound) {
-					println("False")
 					continue
 				}
-				println("True")
 				count++
-			} else {
-				println("False")
 			}
 		}
 	}
@@ -47,14 +40,16 @@ func intersect(a Hail, b Hail) (x float64, y float64, ok bool) {
 	y3 := float64(b.pos.y)
 	x4 := x3 + float64(b.vel.x)
 	y4 := y3 + float64(b.vel.y)
-	x = ((x1*y2-y1*x2)*(x3-x4) - (x1-x2)*(x3*y4-y3*x4)) / ((x1-x2)*(y3-y4) - (y1-y2)*(x3-x4))
-	y = ((x1*y2-y1*x2)*(y3-y4) - (y1-y2)*(x3*y4-y3*x4)) / ((x1-x2)*(y3-y4) - (y1-y2)*(x3-x4))
-	ta := (x - x1) / float64(a.vel.x)
-	tb := (x - x3) / float64(b.vel.x)
+	ta := (x1-x3)*(y3-y4) - (y1-y3)*(x3-x4)
+	ta /= (x1-x2)*(y3-y4) - (y1-y2)*(x3-x4)
+	x, y = x1+ta*(x2-x1), y1+ta*(y2-y1)
 	if math.IsInf(x, 0) || math.IsInf(y, 0) {
 		ok = false
 		return
 	}
+
+	tb := (x - x3) / float64(b.vel.x)
+
 	if ta >= 0 && tb >= 0 {
 		ok = true
 	}

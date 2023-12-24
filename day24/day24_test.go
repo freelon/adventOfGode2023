@@ -12,6 +12,7 @@ const input = `19, 13, 30 @ -2, 1, -2
 20, 19, 15 @ 1, -5, -3`
 
 func TestPart1(t *testing.T) {
+
 	util.AssertEq(t, 2, solve(parse(input), 7, 27))
 }
 
