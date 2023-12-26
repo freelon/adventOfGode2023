@@ -77,7 +77,7 @@ func main() {
 		}
 		fmt.Printf("Took %s to run all days\n", time.Now().Sub(start))
 	} else {
-		day := 25
+		day := 24
 		run(day)
 	}
 }

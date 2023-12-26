@@ -91,6 +91,35 @@ func (v V) String() string {
 	return fmt.Sprintf("%d, %d, %d", v.x, v.y, v.z)
 }
 
-func Part2(_ string) string {
+func Part2(input string) string {
+	hail := parse(input)
+	equationY(hail[0], hail[1])
+	equationY(hail[0], hail[2])
+	equationY(hail[0], hail[3])
+	equationY(hail[0], hail[4])
+	println()
+	println()
+	equationZ(hail[0], hail[1])
+	equationZ(hail[0], hail[2])
+	equationZ(hail[0], hail[3])
+	equationZ(hail[0], hail[4])
 	return ""
+}
+
+func equationY(a Hail, b Hail) {
+	fmt.Printf("%3dX + %3dY + %3dA + %3dB = %3d\n",
+		b.vel.y-a.vel.y,
+		a.vel.x-b.vel.x,
+		b.pos.y-a.pos.y,
+		b.pos.x-a.pos.x,
+		b.pos.x*b.vel.y-b.pos.y*b.vel.x-a.pos.x*a.vel.y+a.pos.y*a.vel.x)
+}
+
+func equationZ(a Hail, b Hail) {
+	fmt.Printf("%3dX + %3dZ + %3dA + %3dB = %3d\n",
+		b.vel.z-a.vel.z,
+		a.vel.x-b.vel.x,
+		b.pos.z-a.pos.z,
+		b.pos.x-a.pos.x,
+		b.pos.x*b.vel.z-b.pos.z*b.vel.x-a.pos.x*a.vel.z+a.pos.z*a.vel.x)
 }
