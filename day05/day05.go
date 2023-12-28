@@ -1,11 +1,11 @@
 package day05
 
 import (
+	"cmp"
 	"math"
 	"slices"
 	"strconv"
 	"strings"
-	"sync"
 )
 
 func Part1(input string) string {
@@ -49,6 +49,35 @@ func (m elvesMap) target(source int) int {
 	return source
 }
 
+type interval struct {
+	start, length int
+}
+
+func (m elvesMap) targetRange(source interval) (result []interval) {
+	var sourceBorders = make(map[int]bool)
+	for _, r := range m.ranges {
+		sourceBorders[r.sourceStart] = true
+		sourceBorders[r.sourceStart+r.length] = true
+	}
+	var borders = make([]int, 0)
+	for sb := range sourceBorders {
+		borders = append(borders, sb)
+	}
+	slices.Sort(borders)
+	c := source
+	for _, border := range borders {
+		if c.start < border && border < c.start+c.length {
+			l := border - c.start
+			result = append(result, interval{c.start, l})
+			c = interval{border, c.length - l}
+		}
+	}
+	if c.length > 0 {
+		result = append(result, c)
+	}
+	return
+}
+
 func parseMap(s string) elvesMap {
 	lines := strings.Split(s, "\n")
 	var ranges []mapRange
@@ -85,33 +114,23 @@ func Part2(input string) string {
 		maps = append(maps, parseMap(blocks[i]))
 	}
 
-	nPairs := len(numbers) / 2
-	minLocations := make([]int, nPairs)
-
-	wg := sync.WaitGroup{}
-	wg.Add(nPairs)
-
-	for k := 0; k < nPairs; k++ {
-		go func(k int) {
-			defer wg.Done()
-			i := 2 * k
-			minLocation := math.MaxInt
-			start := numbers[i]
-			l := numbers[i+1]
-			for j := start; j < start+l; j++ {
-				v := j
-				for _, m := range maps {
-					v = m.target(v)
-				}
-				if v < minLocation {
-					minLocation = v
-				}
-			}
-			minLocations[k] = minLocation
-		}(k)
+	intervals := make([]interval, 0)
+	for i := 0; i < len(numbers); i += 2 {
+		intervals = append(intervals, interval{numbers[i], numbers[i+1]})
 	}
 
-	wg.Wait()
+	for _, m := range maps {
+		var next []interval
+		for _, i := range intervals {
+			for _, source := range m.targetRange(i) {
+				target := interval{start: m.target(source.start), length: source.length}
+				next = append(next, target)
+			}
+		}
+		intervals = next
+	}
 
-	return strconv.Itoa(slices.Min(minLocations))
+	return strconv.Itoa(slices.MinFunc(intervals, func(a, b interval) int {
+		return cmp.Compare(a.start, b.start)
+	}).start)
 }

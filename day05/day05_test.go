@@ -2,6 +2,7 @@ package day05
 
 import (
 	"adventOfGode2023/util"
+	"fmt"
 	"testing"
 )
 
@@ -49,6 +50,11 @@ func TestRange(t *testing.T) {
 52 50 48`
 	m := parseMap(s)
 	println(len(m.ranges))
+
+	source := interval{0, 110}
+	splitted := m.targetRange(source)
+	fmt.Printf("%v\n", splitted)
+	util.AssertEq(t, 4, len(splitted))
 }
 
 func TestDay2Part2(t *testing.T) {
