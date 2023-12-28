@@ -195,45 +195,62 @@ func Part2(input string) string {
 		}
 	}
 
-	visited := make([]bool, len(poi))
-	result, _, ok := longestPathGraph(0, 1, visited, am)
+	// The path from start to the first junction and from the last to finish
+	// is always the same, remove them from the equation.
+	var firstJunction int
+	var dStartToFirst int
+	var lastJunction int
+	var dLastToEnd int
+	for i := 0; i < len(am[0]); i++ {
+		if am[0][i] > 0 {
+			firstJunction = i
+			dStartToFirst = am[0][i]
+		}
+		if am[1][i] > 0 {
+			lastJunction = i
+			dLastToEnd = am[1][i]
+		}
+	}
+	am = am[2:]
+	for i := 0; i < len(am); i++ {
+		am[i] = am[i][2:]
+	}
+
+	visited := make([]bool, len(junctions))
+	result, ok := longestPathGraph(firstJunction-2, lastJunction-2, visited, am)
 	if !ok {
 		panic("no way home :(")
 	}
 
+	result += dStartToFirst + dLastToEnd
 	return strconv.Itoa(result)
 }
 
-func longestPathGraph(current int, goal int, visited []bool, am [][]int) (int, []int, bool) {
+func longestPathGraph(current int, goal int, visited []bool, am [][]int) (int, bool) {
 	if current == goal {
-		return 0, []int{current}, true
-	}
-	if visited[current] {
-		panic("should not happen")
+		return 0, true
 	}
 	visited[current] = true
 
 	foundOne := false
 	longest := 0
-	pathOfLongest := make([]int, 0)
 	for candidate := 0; candidate < len(visited); candidate++ {
 		if current == candidate || visited[candidate] || am[current][candidate] < 0 {
 			continue
 		}
-		l, p, f := longestPathGraph(candidate, goal, slices.Clone(visited), am)
+		l, f := longestPathGraph(candidate, goal, visited, am)
 		if f {
 			foundOne = true
 			d := am[current][candidate] + l
 			if d > longest {
 				longest = d
-				pathOfLongest = p
 			}
 		}
 	}
+	visited[current] = false
 	if foundOne {
-		pathOfLongest = append(pathOfLongest, current)
-		return longest, pathOfLongest, true
+		return longest, true
 	} else {
-		return 0, make([]int, 0), false
+		return 0, false
 	}
 }
