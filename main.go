@@ -33,6 +33,8 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"slices"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -68,21 +70,25 @@ var days = map[int][]Part{
 }
 
 func main() {
-	if len(os.Args) > 1 && "--all" == os.Args[1] {
+	var flaggedThreshold int64 = 1000
+	if i := slices.Index(os.Args, "--flagThreshold"); i > -1 {
+		flaggedThreshold, _ = strconv.ParseInt(os.Args[i+1], 10, 0)
+	}
+	if slices.Index(os.Args, "--all") > -1 {
 		start := time.Now()
 		for day := 0; day < 26; day++ {
 			if _, ok := days[day]; ok {
-				run(day)
+				run(day, flaggedThreshold)
 			}
 		}
 		fmt.Printf("Took %s to run all days\n", time.Now().Sub(start))
 	} else {
 		day := 24
-		run(day)
+		run(day, flaggedThreshold)
 	}
 }
 
-func run(day int) {
+func run(day int, flaggedThreshold int64) {
 	ensureInputExists(day)
 	input := ReadFile(dailyInputPath(day))
 	input = strings.TrimSpace(input)
@@ -91,7 +97,11 @@ func run(day int) {
 		result := f(input)
 		duration := time.Since(start)
 		fmt.Printf("Day %d part %d result: \033[1m%s\033[0m\n", day, part+1, result)
-		fmt.Printf("\u001B[2mTook\u001B[0m \033[3m%s\033[0m\n", duration)
+		red := ""
+		if duration.Milliseconds() > flaggedThreshold {
+			red = ";31"
+		}
+		fmt.Printf("\u001B[2mTook\u001B[0m \033[3%sm%s\033[0m\n", red, duration)
 	}
 }
 
