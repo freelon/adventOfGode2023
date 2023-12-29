@@ -83,7 +83,7 @@ func main() {
 		}
 		fmt.Printf("Took %s to run all days\n", time.Now().Sub(start))
 	} else {
-		day := 21
+		day := 23
 		run(day, flaggedThreshold)
 	}
 }

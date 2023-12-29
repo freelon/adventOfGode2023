@@ -216,8 +216,16 @@ func Part2(input string) string {
 		am[i] = am[i][2:]
 	}
 
+	al := make([][]Neighbor, len(am))
+	for from := 0; from < len(am); from++ {
+		for to := 0; to < len(am); to++ {
+			if am[from][to] > 0 {
+				al[from] = append(al[from], Neighbor{to, am[from][to]})
+			}
+		}
+	}
 	visited := make([]bool, len(junctions))
-	result, ok := longestPathGraph(firstJunction-2, lastJunction-2, visited, am)
+	result, ok := longestPathGraph(firstJunction-2, lastJunction-2, visited, al)
 	if !ok {
 		panic("no way home :(")
 	}
@@ -226,7 +234,12 @@ func Part2(input string) string {
 	return strconv.Itoa(result)
 }
 
-func longestPathGraph(current int, goal int, visited []bool, am [][]int) (int, bool) {
+type Neighbor struct {
+	id   int
+	dist int
+}
+
+func longestPathGraph(current int, goal int, visited []bool, al [][]Neighbor) (int, bool) {
 	if current == goal {
 		return 0, true
 	}
@@ -234,14 +247,14 @@ func longestPathGraph(current int, goal int, visited []bool, am [][]int) (int, b
 
 	foundOne := false
 	longest := 0
-	for candidate := 0; candidate < len(visited); candidate++ {
-		if current == candidate || visited[candidate] || am[current][candidate] < 0 {
+	for _, candidate := range al[current] {
+		if visited[candidate.id] {
 			continue
 		}
-		l, f := longestPathGraph(candidate, goal, visited, am)
+		l, f := longestPathGraph(candidate.id, goal, visited, al)
 		if f {
 			foundOne = true
-			d := am[current][candidate] + l
+			d := candidate.dist + l
 			if d > longest {
 				longest = d
 			}
