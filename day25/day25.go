@@ -1,106 +1,106 @@
 package day25
 
 import (
+	"adventOfGode2023/util"
+	"cmp"
 	"fmt"
-	"math/rand"
 	"slices"
-	"strconv"
 	"strings"
 )
 
 func Part1(input string) string {
 	links := make(map[string][]string)
-	allNames := make(map[string]bool)
+	edgeIds := make(map[string]int)
+	edges := 0
 	for _, line := range strings.Split(input, "\n") {
 		from, rhs, _ := strings.Cut(line, ": ")
-		allNames[from] = true
 		for _, to := range strings.Split(rhs, " ") {
-			allNames[to] = true
 			if _, ok := links[from]; !ok {
 				links[from] = make([]string, 0)
 			}
 			links[from] = append(links[from], to)
+			if _, ok := links[to]; !ok {
+				links[to] = make([]string, 0)
+			}
+			links[to] = append(links[to], from)
+			edgeIds[from+to] = edges
+			edgeIds[to+from] = edges
+			edges++
 		}
 	}
 
-	n := len(allNames)
-	am := make([][]int, n)
-	for i := 0; i < n; i++ {
-		am[i] = make([]int, n)
-	}
-	ids := make(map[string]int)
-	id := 0
-	for k, _ := range allNames {
-		ids[k] = id
-		id++
-	}
-	for from, tos := range links {
-		fromId := ids[from]
-		for _, to := range tos {
-			toId := ids[to]
-			am[fromId][toId] = 1
-			am[toId][fromId] = 1
-		}
+	var allNodes []string
+	for k := range links {
+		allNodes = append(allNodes, k)
 	}
 
-	//Karger's algorithm (https://en.wikipedia.org/wiki/Karger%27s_algorithm)
-	for attempt := 1; true; attempt++ {
-
-		a, b, ok := threeCut(copyMatrix(am))
-		if ok {
-			fmt.Printf("Needed attempts: %d\n", attempt)
-			return strconv.Itoa(a * b)
-		}
+	edgeCounts := make([]Count, edges)
+	for k, v := range edgeIds {
+		edgeCounts[v].from = k[:3]
+		edgeCounts[v].to = k[3:]
 	}
-	panic("unreachable")
-}
 
-func threeCut(am [][]int) (sizeA int, sizeB int, match bool) {
-	n := len(am)
-	var nodes []int
-	var representing = make([]int, n)
-	for i := 0; i < n; i++ {
-		nodes = append(nodes, i)
-		representing[i] = 1
-	}
-	for len(nodes) > 2 {
-		// pick a random edge
-		nodeA := nodes[rand.Intn(len(nodes))]
-		var edges []int
-		for i := 0; i < n; i++ {
-			if am[nodeA][i] > 0 {
-				edges = append(edges, i)
+	runs := min(len(allNodes), 100)
+	for run := 0; run < runs; run++ {
+		start := allNodes[run]
+		predecessors := bfs(links, start)
+		for _, target := range allNodes {
+			if start == target {
+				continue
+			}
+			current := target
+			for predecessor, ok := predecessors[current]; ok; predecessor, ok = predecessors[current] {
+				edgeCounts[edgeIds[current+predecessor]].count++
+				current = predecessor
 			}
 		}
-		nodeB := edges[rand.Intn(len(edges))]
+	}
 
-		// merge
-		representing[nodeA] += representing[nodeB]
-		representing[nodeB] = 0
-		nodes = slices.DeleteFunc(nodes, func(i int) bool {
-			return i == nodeB
+	slices.SortFunc(edgeCounts, func(a, b Count) int {
+		return cmp.Compare(b.count, a.count)
+	})
+
+	top3 := edgeCounts[:3]
+	for _, edge := range top3 {
+		x := links[edge.from]
+		x = slices.DeleteFunc(x, func(s string) bool {
+			return s == edge.to
 		})
+		links[edge.from] = x
 
-		for i := 0; i < n; i++ {
-			am[nodeA][i] += am[nodeB][i]
-			am[i][nodeA] += am[i][nodeB]
-			am[nodeB][i] = 0
-			am[i][nodeB] = 0
-		}
-		am[nodeA][nodeA] = 0
+		y := links[edge.to]
+		y = slices.DeleteFunc(y, func(s string) bool {
+			return s == edge.from
+		})
+		links[edge.to] = y
+
 	}
-	a := nodes[0]
-	b := nodes[1]
-	if am[a][b] == 3 {
-		return representing[a], representing[b], true
-	}
-	return 0, 0, false
+
+	predecessors := bfs(links, allNodes[0])
+	countA := len(predecessors) + 1 // one for the start node
+	countB := len(allNodes) - countA
+	return fmt.Sprintf("%d", countA*countB)
 }
 
-func copyMatrix(m [][]int) (r [][]int) {
-	r = make([][]int, len(m))
-	for i := 0; i < len(m); i++ {
-		r[i] = slices.Clone(m[i])
+type Count struct {
+	from, to string
+	count    int
+}
+
+func bfs(links map[string][]string, start string) (predecessors map[string]string) {
+	predecessors = make(map[string]string)
+	predecessors[start] = ""
+	var queue util.Queue[string]
+	queue.Enqueue(start)
+	for current, ok := queue.Dequeue(); ok; current, ok = queue.Dequeue() {
+		for _, next := range links[current] {
+			if _, ok := predecessors[next]; ok {
+				continue
+			}
+			predecessors[next] = current
+			queue.Enqueue(next)
+		}
 	}
+	delete(predecessors, start)
 	return
 }
