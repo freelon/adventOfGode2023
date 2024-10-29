@@ -4,3 +4,8 @@ Solutions for https://adventofcode.com/2023[Advent of Code 2023] in Go.
 
 Two days don't have automated solutions since I did some manual work for them.
 So their results are for my inputs only.
+
+== Setup
+
+- create directory `input`
+- create `cookie.env` containing you AoC session cookie in the form `session=...`
